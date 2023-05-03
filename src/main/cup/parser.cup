@@ -1,0 +1,55 @@
+package com.jfbarrios;
+
+import java_cup.runtime.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+class Parser;
+
+// terminales que no tienen asociado un valor hacen referencia al método privado linea 28 del archivo flex
+// Y están declarados de linea 42 a 49 en el archivo flex
+terminal LCRLBRKT, RCRLBRKT, LSQRBRKT, RSQRBRKT, COMMA, COLON, NULL;
+
+
+// terminales que si tienen asociado un valor, hacen referencia al método privado linea 32 del archivo flex
+// Y están declarados de la línea 51 a 58 en el archivo flex
+terminal String STRING;
+terminal Long INT_NUM;
+terminal Double REAL_NUM;
+terminal Boolean BOOLEAN;
+
+
+// estos usualmente se utilizan para almacenar subexpresiones evaluadas
+non terminal success, valid_json, value, object, member_list, pair, array, value_list;
+
+// Si es válido la variable RESULT que ya viene por defecto en CUP la dejamos en true para capturarla en las pruebas
+success ::= valid_json  {: System.out.println("\nEs valido el JSON."); RESULT = true; :};
+
+// Es válido si es un array o un objeto.
+valid_json ::= array | object;
+
+
+object ::= LCRLBRKT {: System.out.println("\nParseando objeto... "); :} RCRLBRKT {: System.out.println("Objeto vacio parseado."); :} |
+           LCRLBRKT {: System.out.println("\nParseando objeto... "); :} member_list RCRLBRKT {: System.out.println("Objeto parseado."); :};
+
+
+member_list ::= member_list COMMA pair | pair;
+
+
+pair ::= STRING:k {: System.out.print("Clave " + k + " : "); :} COLON value;
+
+
+array ::= LSQRBRKT {: System.out.println("\nParseando array... "); :} RSQRBRKT {: System.out.println("Array vacio parseado."); :} |
+		  LSQRBRKT {: System.out.println("\nParseando array... "); :} value_list RSQRBRKT {: System.out.println("Array parseado."); :};
+
+
+value_list ::= value_list COMMA value | value;
+
+
+
+value ::= STRING  :s {: System.out.print(s + " (cadena)\n"); :}   |
+		  INT_NUM :n {: System.out.print(n + " (numero entero)\n"); :} 	   |
+		  REAL_NUM:d {: System.out.print(d + " (numero real)\n"); :}        |
+		  BOOLEAN :b {: System.out.print(b + " (booleano)\n"); :} |
+		  NULL {: System.out.print("nulo \n"); :} |
+		  array | object;
